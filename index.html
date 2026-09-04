@@ -388,4 +388,98 @@
 
         // --- Lógica del Sobre y Audio ---
         let musicaActiva = false;
-        const audio = docume
+        const audio = document.getElementById("musica-fondo");
+        const btnAudio = document.getElementById("btn-audio");
+
+        function abrirSobre() {
+            const contenedor = document.querySelector('.contenedor-sobre');
+            const pantallaSobre = document.getElementById('pantalla-sobre');
+            const invitacion = document.getElementById('invitacion-contenido');
+            
+            contenedor.classList.add('abierto');
+            
+            if(!musicaActiva) {
+                try {
+                    audio.play().then(() => {
+                        btnAudio.classList.add("girar");
+                        btnAudio.innerText = "🎵";
+                        musicaActiva = true;
+                    }).catch(e => console.log("Autoplay bloqueado"));
+                } catch(e) { console.log(e); }
+            }
+
+            setTimeout(() => {
+                pantallaSobre.style.opacity = '0';
+                setTimeout(() => {
+                    pantallaSobre.style.display = 'none';
+                    invitacion.style.display = 'block';
+                    setTimeout(() => { invitacion.style.opacity = '1'; }, 50);
+                }, 1000);
+            }, 800);
+        }
+
+        function toggleMusica() {
+            if (musicaActiva) { audio.pause(); btnAudio.classList.remove("girar"); btnAudio.innerText = "🔇"; musicaActiva = false; } 
+            else { audio.play(); btnAudio.classList.add("girar"); btnAudio.innerText = "🎵"; musicaActiva = true; }
+        }
+
+        // --- Cuenta Regresiva ---
+        const limite = new Date(CONFIG.fechaEvento).getTime();
+        setInterval(() => {
+            const ahora = new Date().getTime();
+            const dist = limite - ahora;
+            if (dist < 0) { document.querySelector('.countdown').innerHTML = "<h3>¡Llegó el día!</h3>"; return; }
+            document.getElementById("dias").innerText = String(Math.floor(dist / (1000 * 60 * 60 * 24))).padStart(2, '0');
+            document.getElementById("horas").innerText = String(Math.floor((dist % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))).padStart(2, '0');
+            document.getElementById("minutos").innerText = String(Math.floor((dist % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+            document.getElementById("segundos").innerText = String(Math.floor((dist % (1000 * 60)) / 1000)).padStart(2, '0');
+        }, 1000);
+
+        // --- Modales e Historial de Navegador (Botón Atrás) ---
+        const modalFoto = document.getElementById('modal-foto');
+        const modalRegalos = document.getElementById('modal-regalos');
+
+        function abrirLightbox(src) { 
+            modalFoto.style.display = 'flex'; 
+            document.getElementById('img-ampliada').src = src; 
+            try { history.pushState({ modal: 'foto' }, '', '#foto'); } catch(e) {}
+        }
+
+        function abrirModalRegalos() { 
+            modalRegalos.style.display = 'flex'; 
+            document.getElementById('msg-copiado').style.display = 'none'; 
+            try { history.pushState({ modal: 'regalos' }, '', '#regalos'); } catch(e) {}
+        }
+
+        function cerrarLightbox() { 
+            if(window.location.hash === '#foto') { history.back(); } 
+            else { modalFoto.style.display = 'none'; } 
+        }
+
+        function cerrarModalRegalos() { 
+            if(window.location.hash === '#regalos') { history.back(); } 
+            else { modalRegalos.style.display = 'none'; } 
+        }
+
+        window.addEventListener('popstate', function() {
+            if (window.location.hash !== '#foto') {
+                modalFoto.style.display = 'none';
+            }
+            if (window.location.hash !== '#regalos') {
+                modalRegalos.style.display = 'none';
+            }
+        });
+
+        function copiarCuenta() {
+            navigator.clipboard.writeText(CONFIG.regalos.cuenta).then(() => {
+                document.getElementById('msg-copiado').style.display = 'block';
+            });
+        }
+
+        window.onclick = function(e) {
+            if (e.target == modalFoto) cerrarLightbox();
+            if (e.target == modalRegalos) cerrarModalRegalos();
+        }
+    </script>
+</body>
+</html>
