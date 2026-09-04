@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mis 15 Años</title>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:wght@300;400;600&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --color-sobre: #FFB6C1;
+            --color-sobre-sombra: #e597a4;
+            --color-lacre: #D4AF37; /* Lacre dorado */
+            --color-lacre-inicial: #FF1493; /* Inicial rosa fuerte */
+            --color-fondo-invitacion: #FFF5F7;
+            --color-tarjeta: #FFFFFF;
+            --color-principal: #FFB6C1;
+            --color-dorado: #D4AF37;
+            --color-texto: #5A4A4A;
+            --color-texto-claro: #8B7355;
+            --fuente-titulos: 'Great Vibes', cursive;
+            --fuente-textos: 'Montserrat', sans-serif;
+            --fuente-lacre: 'Cinzel', serif;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: var(--fuente-textos); color: var(--color-texto); overflow-x: hidden; background-color: #f9f9f9; }
+        
+        /* ================= PANTALLA DEL SOBRE ================= */
+        #pantalla-sobre {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: radial-gradient(circle at center, var(--color-tarjeta) 0%, var(--color-fondo-invitacion) 100%);
+            display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 30px;
+            z-index: 9999; transition: opacity 1s ease, visibility 1s ease;
+        }
+        
+        canvas { 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            pointer-events: none; z-index: 1; 
+        }
+
+        .texto-portada {
+            color: var(--color-dorado); font-family: var(--fuente-titulos); font-size: 3.5rem;
+            z-index: 10; text-shadow: 2px 2px 8px rgba(212, 175, 55, 0.2); text-align: center;
+            pointer-events: none; /* Evita que el texto bloquee el clic en móviles pequeños */
+        }
+        .texto-portada.sub {
+            font-size: 1.2rem; font-family: var(--fuente-textos); font-weight: 400; 
+            letter-spacing: 2px; text-transform: uppercase; color: var(--color-texto); 
+        }
+
+        .contenedor-sobre {
+            position: relative; width: 90%; max-width: 500px; aspect-ratio: 4/3;
+            z-index: 10; cursor: pointer; transition: transform 0.5s ease;
+            transform-style: preserve-3d;
+        }
+        .contenedor-sobre:hover { transform: scale(1.02); }
+
+        .sobre-cuerpo {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, var(--color-sobre) 0%, var(--color-sobre-sombra) 100%);
+            border-radius: 10px; box-shadow: 0 20px 50px rgba(0,0,0,0.15); 
+            overflow: hidden; z-index: 2;
+        }
+        
+        .sobre-cuerpo::before, .sobre-cuerpo::after {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2;
+        }
+        .sobre-cuerpo::before {
+            background: rgba(255,255,255,0.15); 
+            -webkit-clip-path: polygon(0 0, 50% 50%, 0 100%);
+            clip-path: polygon(0 0, 50% 50%, 0 100%);
+        }
+        .sobre-cuerpo::after {
+            background: rgba(0,0,0,0.05); 
+            -webkit-clip-path: polygon(100% 0, 50% 50%, 100% 100%);
+            clip-path: polygon(100% 0, 50% 50%, 100% 100%);
+        }
+        .sobre-cuerpo-bottom {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.1); 
+            -webkit-clip-path: polygon(0 100%, 50% 50%, 100% 100%);
+            clip-path: polygon(0 100%, 50% 50%, 100% 100%);
+            z-index: 3;
+        }
+
+        .sobre-solapa {
+            position: absolute; top: 0; left: 0; width: 100%; height: 60%;
+            background: var(--color-sobre); border-radius: 10px 10px 0 0;
+            -webkit-clip-path: polygon(0 0, 100% 0, 50% 100%);
+            clip-path: polygon(0 0, 100% 0, 50% 100%);
+            transform-origin: top; transition: transform 0.8s ease-in-out;
+            z-index: 4; box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .abierto .sobre-solapa { transform: rotateX(180deg); z-index: 1; }
+
+        .lacre {
+            position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%);
+            width: 70px; height: 70px; background: radial-gradient(circle, var(--color-lacre) 40%, #b8860b 100%);
+            border-radius: 50%; z-index: 5; display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2), inset 0 0 10px rgba(255,255,255,0.4);
+            transition: opacity 0.3s ease; border: 2px solid #996515;
+        }
+        .abierto .lacre { opacity: 0; pointer-events: none; }
+        .lacre span {
+            font-family: var(--fuente-lacre); font-size: 35px; color: var(--color-lacre-inicial);
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.5); font-weight: bold;
+        }
+
+        /* ================= INVITACIÓN ================= */
+        #invitacion-contenido {
+            display: none; background-color: var(--color-fondo-invitacion);
+            background-image: radial-gradient(var(--color-tarjeta) 20%, transparent 20%), radial-gradient(var(--color-tarjeta) 20%, transparent 20%);
+            background-size: 20px 20px; background-position: 0 0, 10px 10px;
+            text-align: center; padding: 20px 0; opacity: 0; transition: opacity 1s ease;
+        }
+
+        .decoracion-coquette {
+            border: 2px solid var(--color-dorado); border-radius: 20px; padding: 40px 20px;
+            margin: 20px auto; max-width: 800px; background: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 10px 30px rgba(255, 182, 193, 0.3); backdrop-filter: blur(5px);
+        }
+
+        h1, h2, h3, .cursiva { font-family: var(--fuente-titulos); color: var(--color-dorado); font-weight: normal; }
+        h1 { font-size: 4rem; margin-bottom: 10px; }
+        h2 { font-size: 2.5rem; margin: 20px 0; }
+        h3 { font-size: 2rem; color: var(--color-principal); margin-bottom: 10px; }
+        p { font-size: 1rem; line-height: 1.6; margin-bottom: 15px; }
+
+        .btn {
+            display: inline-block; background-color: var(--color-principal); color: var(--color-tarjeta);
+            padding: 12px 30px; margin: 15px 0; border-radius: 30px; text-decoration: none;
+            font-weight: 600; border: 1px solid var(--color-dorado); box-shadow: 0 4px 15px rgba(255, 182, 193, 0.6);
+            transition: all 0.3s ease; cursor: pointer;
+        }
+        .btn:hover { background-color: var(--color-dorado); transform: translateY(-2px); }
+
+        .countdown { display: flex; justify-content: center; gap: 10px; margin: 30px 0; flex-wrap: wrap; }
+        .time-box {
+            background: var(--color-tarjeta); border: 1px solid var(--color-principal);
+            border-radius: 10px; padding: 15px; min-width: 75px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        }
+        .time-box span { font-size: 1.8rem; font-weight: 600; }
+        .time-box p { font-size: 0.8rem; margin: 0; color: var(--color-texto-claro); text-transform: uppercase; }
+
+        .seccion-boton { margin: 40px 0; padding: 20px; border-bottom: 1px dashed var(--color-principal); }
+        .seccion-boton:last-child { border-bottom: none; }
+
+        /* Galería */
+        .galeria-contenedor { overflow: hidden; width: 100%; padding: 20px 0; }
+        .carrusel { display: flex; gap: 15px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 10px 20px; scrollbar-width: none; }
+        .carrusel::-webkit-scrollbar { display: none; }
+        .carrusel img {
+            width: 250px; height: 350px; object-fit: cover; border-radius: 15px;
+            scroll-snap-align: center; border: 3px solid var(--color-dorado);
+            cursor: pointer; transition: transform 0.3s;
+        }
+        .carrusel img:hover { transform: scale(1.03); }
+
+        /* Modales */
+        .modal {
+            display: none; position: fixed; z-index: 1000; left: 0; top: 0;
+            width: 100%; height: 100%; background-color: rgba(255, 245, 247, 0.95);
+            justify-content: center; align-items: center; flex-direction: column; animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .modal-contenido { max-width: 90%; max-height: 80vh; border-radius: 10px; border: 3px solid var(--color-dorado); }
+        .cerrar-modal { position: absolute; top: 20px; right: 30px; font-size: 40px; font-weight: bold; cursor: pointer; color: var(--color-texto); z-index: 1001;}
+        .cerrar-modal:hover { color: var(--color-dorado); }
+        .caja-regalo { background: var(--color-tarjeta); padding: 40px; border-radius: 20px; text-align: center; border: 2px solid var(--color-dorado); width: 90%; max-width: 400px; position: relative; }
+        .datos-bancarios { margin: 20px 0; padding: 15px; background: var(--color-fondo-invitacion); border-radius: 10px; }
+
+        /* Audio flotante */
+        .audio-btn {
+            position: fixed; bottom: 20px; right: 20px; z-index: 99; background: var(--color-dorado);
+            color: var(--color-tarjeta); width: 50px; height: 50px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; font-size: 20px;
+            cursor: pointer; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.3s;
+        }
+        .audio-btn.girar { animation: rotar 4s linear infinite; background: var(--color-principal); }
+        @keyframes rotar { 100% { transform: rotate(360deg); } }
+        .despedida { font-size: 3.5rem; margin: 40px 0; color: var(--color-principal); }
+    </style>
+</head>
+<body>
+
+    <!-- ================= CONFIGURACIÓN ================= -->
+    <script>
+        const CONFIG = {
+            fechaEvento: "2026-12-12T21:00:00", 
+            inicialLacre: "V", 
+            nombre: "Valeria",
+            frase: "Hay momentos en la vida que son especiales por sí solos. Compartirlos con las personas que quieres, los hace inolvidables.",
+            enlaces: {
+                ubicacion: "https://maps.google.com/?q=-34.9011,-56.1645",
+                asistencia: "https://forms.google.com/tu-formulario",
+                playlist: "https://forms.google.com/tu-formulario-musica",
+                album: "https://forms.google.com/tu-formulario-fotos",
+                instagram: "https://instagram.com/tu_usuario"
+            },
+            regalos: {
+                banco: "Banco Ejemplo", titular: "Valeria López", cuenta: "1234567890"
+            }
+        };
+    </script>
+
+    <!-- Audio -->
+    <button id="btn-audio" class="audio-btn" onclick="toggleMusica()">🔇</button>
+    <audio id="musica-fondo" loop><source src="musica.mp3" type="audio/mpeg"></audio>
+
+    <!-- ================= PANTALLA DEL SOBRE ================= -->
+    <div id="pantalla-sobre">
+        <canvas id="particulas"></canvas>
+        <div class="texto-portada">Invitación especial</div>
+        
+        <div class="contenedor-sobre" onclick="abrirSobre()">
+            <div class="sobre-cuerpo">
+                <div class="sobre-cuerpo-bottom"></div>
+            </div>
+            <div class="sobre-solapa"></div>
+            <div class="lacre"><span id="lacre-letra">V</span></div>
+        </div>
+        
+        <div class="texto-portada sub">Toca para abrir</div>
+    </div>
+
+    <!-- ================= INVITACIÓN ================= -->
+    <div id="invitacion-contenido">
+        <div class="decoracion-coquette">
+            <p class="cursiva" style="font-size: 1.5rem; color: var(--color-principal);">Mis XV Años</p>
+            <h1 id="txt-nombre">Nombre</h1>
+            <p id="txt-frase" style="font-style: italic;">Frase aquí</p>
+            
+            <h2>Faltan...</h2>
+            <div class="countdown">
+                <div class="time-box"><span id="dias">00</span><p>Días</p></div>
+                <div class="time-box"><span id="horas">00</span><p>Hs</p></div>
+                <div class="time-box"><span id="minutos">00</span><p>Min</p></div>
+                <div class="time-box"><span id="segundos">00</span><p>Seg</p></div>
+            </div>
+            
+            <p style="font-weight: bold; margin-top: 15px; color: var(--color-dorado);">12 de Diciembre de 2026 - 21:00 hs</p>
+        </div>
+
+        <div class="decoracion-coquette" style="padding: 10px 20px;">
+            <div class="seccion-boton">
+                <h3>Ubicación</h3>
+                <p>La celebración se llevará a cabo en un lugar muy especial. Toca el botón para saber cómo llegar.</p>
+                <a id="btn-ubicacion" href="#" target="_blank" class="btn">📍 Cómo llegar</a>
+            </div>
+
+            <div class="seccion-boton">
+                <h3>Asistencia</h3>
+                <p>Para mí es muy importante contar con tu presencia. Por favor, confírmame tu asistencia.</p>
+                <a id="btn-asistencia" href="#" target="_blank" class="btn">✨ Confirmar Asistencia</a>
+            </div>
+
+            <div class="seccion-boton">
+                <h3>Playlist</h3>
+                <p>¿Qué canción no puede faltar en esta noche? Ayúdame a armar la playlist perfecta.</p>
+                <a id="btn-playlist" href="#" target="_blank" class="btn">🎶 Sugerir Canciones</a>
+            </div>
+
+            <div class="seccion-boton">
+                <h3>Álbum de Recuerdos</h3>
+                <p>Durante la fiesta, comparte tus mejores fotos en nuestro álbum digital para guardar cada momento.</p>
+                <a id="btn-album" href="#" target="_blank" class="btn">📸 Subir Fotos</a>
+            </div>
+
+            <div class="seccion-boton">
+                <h3>Instagram</h3>
+                <p>Etiquétame en tus historias y acompáñame en la cuenta regresiva.</p>
+                <a id="btn-instagram" href="#" target="_blank" class="btn">📱 Mi Perfil</a>
+            </div>
+        </div>
+
+        <!-- Galería -->
+        <div class="decoracion-coquette">
+            <h2>Mis Momentos</h2>
+            <p>Desliza para ver más (toca la foto para agrandarla)</p>
+            <div class="galeria-contenedor">
+                <div class="carrusel">
+                    <img src="foto1.jpg" alt="Foto 1" onclick="abrirLightbox(this.src)" onerror="this.src='https://via.placeholder.com/250x350/FFD1DC/FFFFFF'">
+                    <img src="foto2.jpg" alt="Foto 2" onclick="abrirLightbox(this.src)" onerror="this.src='https://via.placeholder.com/250x350/FFD1DC/FFFFFF'">
+                    <img src="foto3.jpg" alt="Foto 3" onclick="abrirLightbox(this.src)" onerror="this.src='https://via.placeholder.com/250x350/FFD1DC/FFFFFF'">
+                    <img src="foto4.jpg" alt="Foto 4" onclick="abrirLightbox(this.src)" onerror="this.src='https://via.placeholder.com/250x350/FFD1DC/FFFFFF'">
+                    <img src="foto5.jpg" alt="Foto 5" onclick="abrirLightbox(this.src)" onerror="this.src='https://via.placeholder.com/250x350/FFD1DC/FFFFFF'">
+                </div>
+            </div>
+        </div>
+
+        <!-- Dress Code y Regalos -->
+        <div class="decoracion-coquette" style="margin-bottom: 50px;">
+            <h2>Dress Code</h2>
+            <p style="font-size: 1.2rem; font-weight: 600;">Elegante Formal</p>
+            <p style="font-size: 0.9rem; color: var(--color-texto-claro);">Te invito a vestirte para la ocasión. <br>(Por favor, evita los tonos blanco y rosa).</p>
+            
+            <hr style="border: 0; border-top: 1px solid var(--color-principal); margin: 30px 20%; opacity: 0.5;">
+            
+            <h2>Regalos</h2>
+            <p>Tu presencia es mi mayor regalo, pero si deseas tener un detalle conmigo...</p>
+            <button class="btn" onclick="abrirModalRegalos()">🎁 Ver Datos Bancarios</button>
+        </div>
+
+        <h1 class="despedida cursiva">¡Te espero!</h1>
+        <br><br><br>
+    </div>
+
+    <!-- Modales -->
+    <div id="modal-foto" class="modal">
+        <span class="cerrar-modal" onclick="cerrarLightbox()">&times;</span>
+        <img class="modal-contenido" id="img-ampliada">
+    </div>
+
+    <div id="modal-regalos" class="modal">
+        <div class="caja-regalo">
+            <span class="cerrar-modal" onclick="cerrarModalRegalos()" style="top: 10px; right: 15px;">&times;</span>
+            <h2>Datos Bancarios</h2>
+            <div class="datos-bancarios">
+                <p><strong>Banco:</strong> <span id="regalo-banco"></span></p>
+                <p><strong>Titular:</strong> <span id="regalo-titular"></span></p>
+                <p><strong>Cuenta:</strong> <span id="regalo-cuenta"></span></p>
+            </div>
+            <button class="btn" onclick="copiarCuenta()">📋 Copiar Cuenta</button>
+            <p id="msg-copiado" style="display:none; color: #4CAF50; font-size: 0.8rem; margin-top: 10px;">¡Cuenta copiada!</p>
+        </div>
+    </div>
+
+    <!-- ================= SCRIPTS ================= -->
+    <script>
+        // Cargar Configuración
+        document.getElementById('lacre-letra').innerText = CONFIG.inicialLacre;
+        document.getElementById('txt-nombre').innerText = CONFIG.nombre;
+        document.getElementById('txt-frase').innerText = CONFIG.frase;
+        document.getElementById('btn-ubicacion').href = CONFIG.enlaces.ubicacion;
+        document.getElementById('btn-asistencia').href = CONFIG.enlaces.asistencia;
+        document.getElementById('btn-playlist').href = CONFIG.enlaces.playlist;
+        document.getElementById('btn-album').href = CONFIG.enlaces.album;
+        document.getElementById('btn-instagram').href = CONFIG.enlaces.instagram;
+        document.getElementById('regalo-banco').innerText = CONFIG.regalos.banco;
+        document.getElementById('regalo-titular').innerText = CONFIG.regalos.titular;
+        document.getElementById('regalo-cuenta').innerText = CONFIG.regalos.cuenta;
+
+        // --- Partículas Mejoradas (Dorado y Rosa Fuerte) ---
+        const canvas = document.getElementById('particulas');
+        const ctx = canvas.getContext('2d');
+        
+        function redimensionarCanvas() {
+            canvas.width = window.innerWidth; 
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', redimensionarCanvas);
+        redimensionarCanvas();
+
+        const particulasArray = [];
+        class Particula {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 4 + 1.5; 
+                this.speedY = Math.random() * -1.5 - 0.5; 
+                this.opacity = Math.random() * 0.7 + 0.3; 
+                // Alterna entre polvo dorado y destellos rosa fuerte
+                this.color = Math.random() > 0.6 ? '255, 20, 147' : '212, 175, 55'; 
+            }
+            update() {
+                this.y += this.speedY;
+                if (this.y < 0) { 
+                    this.y = canvas.height; 
+                    this.x = Math.random() * canvas.width; 
+                }
+            }
+            draw() {
+                ctx.fillStyle = `rgba(${this.color}, ${this.opacity})`; 
+                ctx.beginPath(); 
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); 
+                ctx.fill();
+            }
+        }
+        for(let i=0; i<70; i++) particulasArray.push(new Particula());
+        
+        function animarParticulas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particulasArray.forEach(p => { p.update(); p.draw(); });
+            requestAnimationFrame(animarParticulas);
+        }
+        animarParticulas();
+
+        // --- Lógica del Sobre y Audio ---
+        let musicaActiva = false;
+        const audio = docume
